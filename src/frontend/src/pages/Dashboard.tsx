@@ -16,6 +16,25 @@ function daysLeft(renewalMs: bigint) {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+function getISTMidnight(renewalMs: bigint): Date {
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(Number(renewalMs) + istOffset);
+  istDate.setUTCHours(0, 0, 0, 0);
+  return new Date(istDate.getTime() - istOffset);
+}
+
+function formatTimeLeft(renewalMs: bigint): string {
+  const midnight = getISTMidnight(renewalMs);
+  const diff = midnight.getTime() - Date.now();
+  if (diff <= 0) return "EXPIRED";
+  const totalMinutes = Math.floor(diff / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+  return `${hours}h ${minutes}m`;
+}
+
 export default function Dashboard() {
   const { actor } = useBackend();
   const { user } = useAuth();
@@ -30,24 +49,13 @@ export default function Dashboard() {
       setLoading(true);
       try {
         const [exp, members, ranklist] = await Promise.all([
-          actor.getExpiringMembers(BigInt(7)),
+          actor.getExpiringMembers(BigInt(2)),
           actor.getMembers(),
           actor.getRanks(),
         ]);
         setExpiring(exp);
         setAllMembers(members);
         setRanks(ranklist);
-
-        const sessionKey = "deathsmp_discord_alerted";
-        if (!sessionStorage.getItem(sessionKey)) {
-          const soon = exp.filter((m) => daysLeft(m.renewalDate) <= 3);
-          for (const m of soon) {
-            const rank = ranklist.find((r) => r.id === m.rankId);
-            const msg = `⚠️ **DEATHSMP RANK EXPIRY ALERT** — Player **${m.playerName}** (${m.discordUsername}) | Rank: ${rank?.name ?? "Unknown"} | Expires: ${formatDate(m.renewalDate)} (${daysLeft(m.renewalDate)} days left)`;
-            await actor.sendDiscordAlert(msg);
-          }
-          sessionStorage.setItem(sessionKey, "1");
-        }
       } finally {
         setLoading(false);
       }
@@ -73,28 +81,57 @@ export default function Dashboard() {
       </div>
 
       {expiring.length > 0 && (
-        <div
-          data-ocid="dashboard.panel"
-          className="bg-primary/10 border border-primary border-l-4 border-l-primary p-4 mb-6 flex gap-3"
-        >
-          <AlertTriangle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-primary text-xs font-bold uppercase tracking-widest mb-2">
-              ⚠ EXPIRY ALERTS — {expiring.length} member(s) expiring within 7
-              days
-            </p>
-            <div className="space-y-1">
-              {expiring.map((m) => (
-                <p key={m.id.toString()} className="text-xs text-foreground/80">
-                  <span className="text-primary font-bold">{m.playerName}</span>{" "}
-                  — {getRankName(m.rankId)} — Expires{" "}
-                  {formatDate(m.renewalDate)}{" "}
-                  <span className="text-primary">
-                    ({daysLeft(m.renewalDate)}d left)
-                  </span>
-                </p>
-              ))}
-            </div>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-4 h-4 text-primary" />
+            <h2 className="text-xs font-bold uppercase tracking-widest text-primary">
+              ⚠ Important Notifications — {expiring.length} member(s) expiring
+              within 2 days
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {expiring.map((m, i) => (
+              <div
+                key={m.id.toString()}
+                data-ocid={`dashboard.item.${i + 1}`}
+                className="bg-primary/10 border border-primary/40 border-l-4 border-l-primary p-4"
+              >
+                <div className="space-y-1 text-xs">
+                  <p className="text-foreground">
+                    <span className="text-muted-foreground uppercase tracking-wider text-[10px]">
+                      Discord id:
+                    </span>{" "}
+                    <span className="text-primary font-bold">
+                      @{m.discordUsername}
+                    </span>
+                  </p>
+                  <p className="text-foreground">
+                    <span className="text-muted-foreground uppercase tracking-wider text-[10px]">
+                      Minecraft Username:
+                    </span>{" "}
+                    <span className="font-semibold">{m.playerName}</span>
+                  </p>
+                  <p className="text-foreground">
+                    <span className="text-muted-foreground uppercase tracking-wider text-[10px]">
+                      Expiry Date:
+                    </span>{" "}
+                    <span className="font-semibold">
+                      {formatDate(m.renewalDate)}
+                    </span>
+                  </p>
+                  <p className="text-foreground">
+                    <span className="text-muted-foreground uppercase tracking-wider text-[10px]">
+                      Time left:
+                    </span>{" "}
+                    <span
+                      className={`font-bold ${formatTimeLeft(m.renewalDate) === "EXPIRED" ? "text-destructive" : "text-primary"}`}
+                    >
+                      {formatTimeLeft(m.renewalDate)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -130,7 +167,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-primary" />
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-              Expiring This Week
+              Expiring Soon (2 days)
             </span>
           </div>
           {loading ? (
@@ -164,7 +201,7 @@ export default function Dashboard() {
       <div className="bg-card border border-border border-t-2 border-t-primary">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">
-            Expiring Within 7 Days
+            Expiring Within 2 Days
           </h2>
           <Link
             to="/members"
@@ -195,7 +232,7 @@ export default function Dashboard() {
               return (
                 <div
                   key={m.id.toString()}
-                  data-ocid={`dashboard.item.${i + 1}`}
+                  data-ocid={`dashboard.row.${i + 1}`}
                   className="flex items-center justify-between px-4 py-3"
                 >
                   <div>
@@ -210,9 +247,7 @@ export default function Dashboard() {
                     className={`text-xs font-bold px-2 py-1 border ${
                       days <= 1
                         ? "bg-primary/20 border-primary text-primary"
-                        : days <= 3
-                          ? "bg-primary/10 border-primary/50 text-primary"
-                          : "border-border text-muted-foreground"
+                        : "bg-primary/10 border-primary/50 text-primary"
                     }`}
                   >
                     {days <= 0 ? "EXPIRED" : `${days}D LEFT`}
