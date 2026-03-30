@@ -1,4 +1,3 @@
-import Outcall "./http-outcalls/outcall";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Array "mo:core/Array";
@@ -27,12 +26,12 @@ actor {
     notes : Text;
   };
 
-  var users : [(Text, UserInfo)] = [];
-  var ranks : [Rank] = [];
-  var members : [Member] = [];
-  var nextRankId : Nat = 1;
-  var nextMemberId : Nat = 1;
-  var discordWebhookUrl : Text = "";
+  stable var users : [(Text, UserInfo)] = [];
+  stable var ranks : [Rank] = [];
+  stable var members : [Member] = [];
+  stable var nextRankId : Nat = 1;
+  stable var nextMemberId : Nat = 1;
+  stable var discordWebhookUrl : Text = "";
 
   func hashPassword(password : Text) : Text { "h_" # password };
 
@@ -77,7 +76,6 @@ actor {
     members := [];
     nextRankId := 1;
     nextMemberId := 1;
-    discordWebhookUrl := "";
     { ok = true; message = "All data reset. First registration will become superAdmin." }
   };
 
@@ -212,33 +210,5 @@ actor {
     members.filter(func(m : Member) : Bool {
       m.renewalDate >= now and m.renewalDate <= futureMs
     })
-  };
-
-  public query func getDiscordWebhookUrl() : async Text { discordWebhookUrl };
-
-  public func setDiscordWebhookUrl(callerEmail : Text, callerPassword : Text, url : Text) : async { ok : Bool; message : Text } {
-    if (not verifyAdmin(callerEmail, callerPassword)) return { ok = false; message = "Unauthorized" };
-    discordWebhookUrl := url;
-    { ok = true; message = "Webhook URL saved" }
-  };
-
-  public func sendDiscordAlert(message : Text) : async { ok : Bool; message : Text } {
-    if (discordWebhookUrl == "") return { ok = false; message = "No webhook URL configured" };
-    let body = "{\"content\":\"" # message # "\"}";
-    try {
-      let _ = await Outcall.httpPostRequest(
-        discordWebhookUrl,
-        [{ name = "Content-Type"; value = "application/json" }],
-        body,
-        transform
-      );
-      { ok = true; message = "Alert sent" }
-    } catch (_) {
-      { ok = false; message = "Failed to send alert" }
-    }
-  };
-
-  public query func transform(input : Outcall.TransformationInput) : async Outcall.TransformationOutput {
-    { input.response with headers = [] }
   };
 };

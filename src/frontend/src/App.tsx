@@ -7,9 +7,11 @@ import {
   createRouter,
   redirect,
 } from "@tanstack/react-router";
+import BlockedOverlay from "./components/BlockedOverlay";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
 import AdminManager from "./pages/AdminManager";
+import Blocked from "./pages/Blocked";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Members from "./pages/Members";
@@ -30,6 +32,7 @@ const rootRoute = createRootRoute({
   component: () => (
     <AuthProvider>
       <Outlet />
+      <BlockedOverlay />
       <Toaster theme="dark" />
     </AuthProvider>
   ),
@@ -47,12 +50,28 @@ const registerRoute = createRoute({
   component: Register,
 });
 
+const blockedRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/blocked",
+  beforeLoad: () => {
+    const user = getStoredUser();
+    if (!user) throw redirect({ to: "/login" });
+    if (user.role === "admin" || user.role === "superAdmin") {
+      throw redirect({ to: "/" });
+    }
+  },
+  component: Blocked,
+});
+
 const protectedLayout = createRoute({
   getParentRoute: () => rootRoute,
   id: "protected",
   beforeLoad: () => {
     const user = getStoredUser();
     if (!user) throw redirect({ to: "/login" });
+    if (user.role !== "admin" && user.role !== "superAdmin") {
+      throw redirect({ to: "/blocked" });
+    }
   },
   component: Layout,
 });
@@ -94,6 +113,7 @@ const settingsRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
+  blockedRoute,
   protectedLayout.addChildren([
     dashboardRoute,
     membersRoute,

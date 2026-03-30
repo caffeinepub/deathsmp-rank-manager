@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { createActorWithConfig } from "../config";
 
 export interface AuthUser {
   email: string;
@@ -28,15 +29,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
+    async function init() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed: AuthUser = JSON.parse(stored);
+          // Set user immediately with cached role so UI doesn't flicker
+          setUser(parsed);
+          // Re-verify role from backend to pick up any role changes (e.g. admin granted)
+          try {
+            const actor = await createActorWithConfig();
+            const result = await (actor as any).loginUser(
+              parsed.email,
+              parsed.password,
+            );
+            if (result.ok) {
+              const freshUser: AuthUser = { ...parsed, role: result.role };
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(freshUser));
+              setUser(freshUser);
+            }
+          } catch {
+            // Backend unavailable, keep cached role
+          }
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
+      setIsLoading(false);
     }
-    setIsLoading(false);
+    init();
   }, []);
 
   const login = (email: string, password: string, role: string) => {
