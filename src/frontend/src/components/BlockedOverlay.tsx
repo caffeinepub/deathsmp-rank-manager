@@ -1,10 +1,36 @@
 import { Skull } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 
 export default function BlockedOverlay() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshRole } = useAuth();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const refreshRoleRef = useRef(refreshRole);
+  refreshRoleRef.current = refreshRole;
 
-  if (!user || user.role === "admin" || user.role === "superAdmin") return null;
+  const isBlocked =
+    !!user && user.role !== "admin" && user.role !== "superAdmin";
+
+  useEffect(() => {
+    if (isBlocked) {
+      intervalRef.current = setInterval(() => {
+        refreshRoleRef.current();
+      }, 5000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isBlocked]);
+
+  if (!isBlocked) return null;
 
   return (
     <div
@@ -44,7 +70,7 @@ export default function BlockedOverlay() {
               Your Email
             </p>
             <p className="text-foreground font-mono text-sm break-all">
-              {user.email}
+              {user?.email}
             </p>
             <p className="text-[10px] text-muted-foreground/70 mt-2 italic">
               Please give this email to Owner if he asks you for it

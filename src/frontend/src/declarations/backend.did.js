@@ -18,6 +18,7 @@ const Member = IDL.Record({
 const UserPublic = IDL.Record({ email: IDL.Text, role: IDL.Text });
 const RegisterResult = IDL.Record({ ok: IDL.Bool, message: IDL.Text, role: IDL.Text });
 const LoginResult = IDL.Record({ ok: IDL.Bool, role: IDL.Text, message: IDL.Text });
+const RoleResult = IDL.Record({ ok: IDL.Bool, role: IDL.Text });
 const OkMessage = IDL.Record({ ok: IDL.Bool, message: IDL.Text });
 const AddRankResult = IDL.Record({ ok: IDL.Bool, rankId: IDL.Nat, message: IDL.Text });
 const AddMemberResult = IDL.Record({ ok: IDL.Bool, memberId: IDL.Nat, message: IDL.Text });
@@ -25,6 +26,7 @@ const AddMemberResult = IDL.Record({ ok: IDL.Bool, memberId: IDL.Nat, message: I
 const serviceShape = {
   registerUser: IDL.Func([IDL.Text, IDL.Text], [RegisterResult], []),
   loginUser: IDL.Func([IDL.Text, IDL.Text], [LoginResult], ['query']),
+  checkUserRole: IDL.Func([IDL.Text, IDL.Text], [RoleResult], []),
   listUsers: IDL.Func([], [IDL.Vec(UserPublic)], ['query']),
   setUserRole: IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Text], [OkMessage], []),
   getRanks: IDL.Func([], [IDL.Vec(Rank)], ['query']),
@@ -51,12 +53,14 @@ export const idlFactory = ({ IDL }) => {
   const UserPublic = IDL.Record({ email: IDL.Text, role: IDL.Text });
   const RegisterResult = IDL.Record({ ok: IDL.Bool, message: IDL.Text, role: IDL.Text });
   const LoginResult = IDL.Record({ ok: IDL.Bool, role: IDL.Text, message: IDL.Text });
+  const RoleResult = IDL.Record({ ok: IDL.Bool, role: IDL.Text });
   const OkMessage = IDL.Record({ ok: IDL.Bool, message: IDL.Text });
   const AddRankResult = IDL.Record({ ok: IDL.Bool, rankId: IDL.Nat, message: IDL.Text });
   const AddMemberResult = IDL.Record({ ok: IDL.Bool, memberId: IDL.Nat, message: IDL.Text });
   return IDL.Service({
     registerUser: IDL.Func([IDL.Text, IDL.Text], [RegisterResult], []),
     loginUser: IDL.Func([IDL.Text, IDL.Text], [LoginResult], ['query']),
+    checkUserRole: IDL.Func([IDL.Text, IDL.Text], [RoleResult], []),
     listUsers: IDL.Func([], [IDL.Vec(UserPublic)], ['query']),
     setUserRole: IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Text], [OkMessage], []),
     getRanks: IDL.Func([], [IDL.Vec(Rank)], ['query']),

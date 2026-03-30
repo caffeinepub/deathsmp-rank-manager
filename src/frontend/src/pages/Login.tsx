@@ -2,12 +2,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Loader2, Skull } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { createActorWithConfig } from "../config";
 import { useAuth } from "../context/AuthContext";
-import { useBackend } from "../hooks/useBackend";
 
 export default function Login() {
   const { login } = useAuth();
-  const { actor } = useBackend();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,13 +14,10 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor) {
-      toast.error("Backend not ready. Try again.");
-      return;
-    }
     setLoading(true);
     try {
-      const res = await actor.loginUser(email, password);
+      const actor = await createActorWithConfig();
+      const res = await (actor as any).loginUser(email, password);
       if (res.ok) {
         login(email, password, res.role);
         navigate({ to: "/" });
@@ -29,7 +25,7 @@ export default function Login() {
         toast.error(res.message);
       }
     } catch {
-      toast.error("Login failed. Check connection.");
+      toast.error("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }

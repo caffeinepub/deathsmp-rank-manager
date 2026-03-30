@@ -1,10 +1,18 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Skull } from "lucide-react";
+import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
 export default function Blocked() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  // If role was updated to admin/superAdmin (after owner grants access), redirect to dashboard
+  useEffect(() => {
+    if (user && (user.role === "admin" || user.role === "superAdmin")) {
+      navigate({ to: "/" });
+    }
+  }, [user, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -35,7 +43,7 @@ export default function Blocked() {
             Access Denied
           </h2>
           <p className="text-muted-foreground text-sm tracking-wide mb-6">
-            Please contact Owner:{" "}
+            Please ask Owner{" "}
             <span className="text-primary font-bold">Itz_Vion</span> for Access
           </p>
 
@@ -47,7 +55,7 @@ export default function Blocked() {
               {user?.email}
             </p>
             <p className="text-[10px] text-muted-foreground/70 mt-2 italic">
-              give this email if the owner asks you for it
+              Please give this email to Owner if he asks you for it
             </p>
           </div>
 

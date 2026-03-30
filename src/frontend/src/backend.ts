@@ -52,6 +52,7 @@ export class ExternalBlob {
 export interface backendInterface {
   registerUser(email: string, password: string): Promise<{ ok: boolean; message: string; role: string }>;
   loginUser(email: string, password: string): Promise<{ ok: boolean; role: string; message: string }>;
+  checkUserRole(email: string, password: string): Promise<{ ok: boolean; role: string }>;
   listUsers(): Promise<Array<{ email: string; role: string }>>;
   setUserRole(callerEmail: string, callerPassword: string, targetEmail: string, newRole: string): Promise<{ ok: boolean; message: string }>;
   getRanks(): Promise<Array<{ id: bigint; name: string; priceINR: bigint }>>;
@@ -86,6 +87,9 @@ export class Backend implements backendInterface {
   }
   loginUser(email: string, password: string) {
     return this._call(() => this.actor.loginUser(email, password));
+  }
+  checkUserRole(email: string, password: string) {
+    return this._call(() => this.actor.checkUserRole(email, password));
   }
   listUsers() {
     return this._call(() => this.actor.listUsers());

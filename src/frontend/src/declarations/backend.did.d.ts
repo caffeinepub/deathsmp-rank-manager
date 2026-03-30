@@ -17,6 +17,7 @@ export interface UserPublic { email: string; role: string; }
 export interface _SERVICE {
   registerUser: ActorMethod<[string, string], { ok: boolean; message: string; role: string }>;
   loginUser: ActorMethod<[string, string], { ok: boolean; role: string; message: string }>;
+  checkUserRole: ActorMethod<[string, string], { ok: boolean; role: string }>;
   listUsers: ActorMethod<[], Array<UserPublic>>;
   setUserRole: ActorMethod<[string, string, string, string], { ok: boolean; message: string }>;
   getRanks: ActorMethod<[], Array<Rank>>;

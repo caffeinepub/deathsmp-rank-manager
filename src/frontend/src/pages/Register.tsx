@@ -2,12 +2,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Loader2, Skull } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { createActorWithConfig } from "../config";
 import { useAuth } from "../context/AuthContext";
-import { useBackend } from "../hooks/useBackend";
 
 export default function Register() {
   const { login } = useAuth();
-  const { actor } = useBackend();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,13 +23,10 @@ export default function Register() {
       toast.error("Password must be at least 6 characters.");
       return;
     }
-    if (!actor) {
-      toast.error("Backend not ready. Try again.");
-      return;
-    }
     setLoading(true);
     try {
-      const res = await actor.registerUser(email, password);
+      const actor = await createActorWithConfig();
+      const res = await (actor as any).registerUser(email, password);
       if (res.ok) {
         login(email, password, res.role);
         toast.success("Account created!");
@@ -39,7 +35,7 @@ export default function Register() {
         toast.error(res.message);
       }
     } catch {
-      toast.error("Registration failed.");
+      toast.error("Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }

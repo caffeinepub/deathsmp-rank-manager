@@ -31,6 +31,7 @@ actor {
   stable var members : [Member] = [];
   stable var nextRankId : Nat = 1;
   stable var nextMemberId : Nat = 1;
+  // Kept for upgrade compatibility with previous version
   stable var discordWebhookUrl : Text = "";
 
   func hashPassword(password : Text) : Text { "h_" # password };
@@ -91,6 +92,7 @@ actor {
     }
   };
 
+  // Query call - fast and reliable for login
   public query func loginUser(email : Text, password : Text) : async { ok : Bool; role : Text; message : Text } {
     switch (findUser(email)) {
       case (null) { { ok = false; role = ""; message = "Invalid credentials" } };
@@ -99,6 +101,20 @@ actor {
           { ok = true; role = u.role; message = "Login successful" }
         } else {
           { ok = false; role = ""; message = "Invalid credentials" }
+        }
+      };
+    }
+  };
+
+  // Update call - authoritative role check (use after admin grants access)
+  public func checkUserRole(email : Text, password : Text) : async { ok : Bool; role : Text } {
+    switch (findUser(email)) {
+      case (null) { { ok = false; role = "" } };
+      case (?u) {
+        if (u.passwordHash == hashPassword(password)) {
+          { ok = true; role = u.role }
+        } else {
+          { ok = false; role = "" }
         }
       };
     }
