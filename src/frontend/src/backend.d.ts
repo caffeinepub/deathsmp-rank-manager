@@ -45,24 +45,5 @@ export interface backendInterface {
   updateMember(callerEmail: string, callerPassword: string, id: bigint, playerName: string, discordUsername: string, rankId: bigint, purchaseDate: bigint, monthsPaidInAdvance: bigint, notes: string): Promise<{ ok: boolean; message: string }>;
   deleteMember(callerEmail: string, callerPassword: string, id: bigint): Promise<{ ok: boolean; message: string }>;
   getExpiringMembers(withinDays: bigint): Promise<Array<Member>>;
-  getDiscordWebhookUrl(): Promise<string>;
-  setDiscordWebhookUrl(callerEmail: string, callerPassword: string, url: string): Promise<{ ok: boolean; message: string }>;
-  sendDiscordAlert(message: string): Promise<{ ok: boolean; message: string }>;
   resetAllData(): Promise<{ ok: boolean; message: string }>;
-  _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-}
-
-/**
- * Module augmentation: merges _initializeAccessControlWithSecret into the
- * backendInterface (and Backend class) exported by backend.ts so that
- * useActor.ts can call the method without a TypeScript error.
- */
-declare module "./backend" {
-  interface backendInterface {
-    _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-  }
-  // Augment the Backend class so it remains assignable to backendInterface
-  interface Backend {
-    _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-  }
 }

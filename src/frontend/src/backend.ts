@@ -63,12 +63,7 @@ export interface backendInterface {
   updateMember(callerEmail: string, callerPassword: string, id: bigint, playerName: string, discordUsername: string, rankId: bigint, purchaseDate: bigint, monthsPaidInAdvance: bigint, notes: string): Promise<{ ok: boolean; message: string }>;
   deleteMember(callerEmail: string, callerPassword: string, id: bigint): Promise<{ ok: boolean; message: string }>;
   getExpiringMembers(withinDays: bigint): Promise<Array<any>>;
-  getDiscordWebhookUrl(): Promise<string>;
-  setDiscordWebhookUrl(callerEmail: string, callerPassword: string, url: string): Promise<{ ok: boolean; message: string }>;
-  sendDiscordAlert(message: string): Promise<{ ok: boolean; message: string }>;
-  _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-  getCallerUserRole(): Promise<any>;
-  isCallerAdmin(): Promise<boolean>;
+  resetAllData(): Promise<{ ok: boolean; message: string }>;
 }
 
 export class Backend implements backendInterface {
@@ -125,23 +120,8 @@ export class Backend implements backendInterface {
   getExpiringMembers(withinDays: bigint) {
     return this._call(() => this.actor.getExpiringMembers(withinDays));
   }
-  getDiscordWebhookUrl() {
-    return this._call(() => this.actor.getDiscordWebhookUrl());
-  }
-  setDiscordWebhookUrl(callerEmail: string, callerPassword: string, url: string) {
-    return this._call(() => this.actor.setDiscordWebhookUrl(callerEmail, callerPassword, url));
-  }
-  sendDiscordAlert(message: string) {
-    return this._call(() => this.actor.sendDiscordAlert(message));
-  }
-  async _initializeAccessControlWithSecret(userSecret: string) {
-    return this._call(() => this.actor._initializeAccessControlWithSecret(userSecret));
-  }
-  getCallerUserRole() {
-    return this._call(() => this.actor.getCallerUserRole());
-  }
-  isCallerAdmin() {
-    return this._call(() => this.actor.isCallerAdmin());
+  resetAllData() {
+    return this._call(() => this.actor.resetAllData());
   }
 }
 

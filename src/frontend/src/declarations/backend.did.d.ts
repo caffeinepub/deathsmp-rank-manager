@@ -13,7 +13,6 @@ export interface Member {
   monthsPaidInAdvance: bigint; notes: string;
 }
 export interface UserPublic { email: string; role: string; }
-export type UserRole = { admin: null } | { user: null } | { guest: null };
 
 export interface _SERVICE {
   registerUser: ActorMethod<[string, string], { ok: boolean; message: string; role: string }>;
@@ -29,12 +28,7 @@ export interface _SERVICE {
   updateMember: ActorMethod<[string, string, bigint, string, string, bigint, bigint, bigint, string], { ok: boolean; message: string }>;
   deleteMember: ActorMethod<[string, string, bigint], { ok: boolean; message: string }>;
   getExpiringMembers: ActorMethod<[bigint], Array<Member>>;
-  getDiscordWebhookUrl: ActorMethod<[], string>;
-  setDiscordWebhookUrl: ActorMethod<[string, string, string], { ok: boolean; message: string }>;
-  sendDiscordAlert: ActorMethod<[string], { ok: boolean; message: string }>;
-  _initializeAccessControlWithSecret: ActorMethod<[string], undefined>;
-  getCallerUserRole: ActorMethod<[], UserRole>;
-  isCallerAdmin: ActorMethod<[], boolean>;
+  resetAllData: ActorMethod<[], { ok: boolean; message: string }>;
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

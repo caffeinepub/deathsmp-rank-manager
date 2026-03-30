@@ -21,7 +21,6 @@ const LoginResult = IDL.Record({ ok: IDL.Bool, role: IDL.Text, message: IDL.Text
 const OkMessage = IDL.Record({ ok: IDL.Bool, message: IDL.Text });
 const AddRankResult = IDL.Record({ ok: IDL.Bool, rankId: IDL.Nat, message: IDL.Text });
 const AddMemberResult = IDL.Record({ ok: IDL.Bool, memberId: IDL.Nat, message: IDL.Text });
-const UserRole = IDL.Variant({ admin: IDL.Null, user: IDL.Null, guest: IDL.Null });
 
 const serviceShape = {
   registerUser: IDL.Func([IDL.Text, IDL.Text], [RegisterResult], []),
@@ -37,12 +36,7 @@ const serviceShape = {
   updateMember: IDL.Func([IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Nat, IDL.Int, IDL.Nat, IDL.Text], [OkMessage], []),
   deleteMember: IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [OkMessage], []),
   getExpiringMembers: IDL.Func([IDL.Nat], [IDL.Vec(Member)], ['query']),
-  getDiscordWebhookUrl: IDL.Func([], [IDL.Text], ['query']),
-  setDiscordWebhookUrl: IDL.Func([IDL.Text, IDL.Text, IDL.Text], [OkMessage], []),
-  sendDiscordAlert: IDL.Func([IDL.Text], [OkMessage], []),
-  _initializeAccessControlWithSecret: IDL.Func([IDL.Text], [], []),
-  getCallerUserRole: IDL.Func([], [UserRole], ['query']),
-  isCallerAdmin: IDL.Func([], [IDL.Bool], ['query']),
+  resetAllData: IDL.Func([], [OkMessage], []),
 };
 
 export const idlService = IDL.Service(serviceShape);
@@ -60,7 +54,6 @@ export const idlFactory = ({ IDL }) => {
   const OkMessage = IDL.Record({ ok: IDL.Bool, message: IDL.Text });
   const AddRankResult = IDL.Record({ ok: IDL.Bool, rankId: IDL.Nat, message: IDL.Text });
   const AddMemberResult = IDL.Record({ ok: IDL.Bool, memberId: IDL.Nat, message: IDL.Text });
-  const UserRole = IDL.Variant({ admin: IDL.Null, user: IDL.Null, guest: IDL.Null });
   return IDL.Service({
     registerUser: IDL.Func([IDL.Text, IDL.Text], [RegisterResult], []),
     loginUser: IDL.Func([IDL.Text, IDL.Text], [LoginResult], ['query']),
@@ -75,12 +68,7 @@ export const idlFactory = ({ IDL }) => {
     updateMember: IDL.Func([IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Nat, IDL.Int, IDL.Nat, IDL.Text], [OkMessage], []),
     deleteMember: IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [OkMessage], []),
     getExpiringMembers: IDL.Func([IDL.Nat], [IDL.Vec(Member)], ['query']),
-    getDiscordWebhookUrl: IDL.Func([], [IDL.Text], ['query']),
-    setDiscordWebhookUrl: IDL.Func([IDL.Text, IDL.Text, IDL.Text], [OkMessage], []),
-    sendDiscordAlert: IDL.Func([IDL.Text], [OkMessage], []),
-    _initializeAccessControlWithSecret: IDL.Func([IDL.Text], [], []),
-    getCallerUserRole: IDL.Func([], [UserRole], ['query']),
-    isCallerAdmin: IDL.Func([], [IDL.Bool], ['query']),
+    resetAllData: IDL.Func([], [OkMessage], []),
   });
 };
 export const init = ({ IDL }) => { return []; };
