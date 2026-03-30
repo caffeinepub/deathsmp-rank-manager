@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { UserPublic } from "../backend.d";
@@ -13,6 +13,8 @@ export default function AdminManager() {
   const [users, setUsers] = useState<UserPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [addEmail, setAddEmail] = useState("");
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     if (user?.role !== "superAdmin") {
@@ -55,6 +57,30 @@ export default function AdminManager() {
     }
   };
 
+  const grantAdmin = async () => {
+    if (!actor || !user || !addEmail.trim()) return;
+    setAdding(true);
+    try {
+      const res = await actor.setUserRole(
+        user.email,
+        user.password,
+        addEmail.trim(),
+        "admin",
+      );
+      if (res.ok) {
+        toast.success(`${addEmail.trim()} has been granted admin access.`);
+        setAddEmail("");
+        load();
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error("Failed to grant admin access.");
+    } finally {
+      setAdding(false);
+    }
+  };
+
   const roleColor = (role: string) => {
     if (role === "superAdmin")
       return "text-primary border-primary/50 bg-primary/10";
@@ -76,6 +102,42 @@ export default function AdminManager() {
           <p className="text-muted-foreground text-xs tracking-wider">
             Manage user roles and access
           </p>
+        </div>
+      </div>
+
+      {/* Grant Admin Access */}
+      <div className="bg-card border border-border border-t-2 border-t-primary mb-6 p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <UserPlus className="w-4 h-4 text-primary" />
+          <h2 className="text-sm font-bold tracking-widest uppercase text-foreground">
+            Grant Admin Access
+          </h2>
+        </div>
+        <p className="text-muted-foreground text-xs tracking-wider mb-4">
+          Enter the email address of a registered user to grant them admin
+          access.
+        </p>
+        <div className="flex gap-2">
+          <input
+            data-ocid="admins.input"
+            type="email"
+            placeholder="user@example.com"
+            value={addEmail}
+            onChange={(e) => setAddEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && grantAdmin()}
+            disabled={adding}
+            className="flex-1 bg-secondary border border-border text-foreground text-xs px-3 py-2 placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors disabled:opacity-40"
+          />
+          <button
+            type="button"
+            data-ocid="admins.primary_button"
+            onClick={grantAdmin}
+            disabled={adding || !addEmail.trim()}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary px-4 py-2 text-[10px] uppercase tracking-widest font-bold transition-colors disabled:opacity-40 flex items-center gap-1.5"
+          >
+            {adding && <Loader2 className="w-3 h-3 animate-spin" />}
+            GRANT ADMIN
+          </button>
         </div>
       </div>
 
@@ -104,60 +166,72 @@ export default function AdminManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {users.map((u, i) => (
-                <tr
-                  key={u.email}
-                  data-ocid={`admins.row.${i + 1}`}
-                  className="hover:bg-secondary/30 transition-colors"
-                >
-                  <td className="px-4 py-3 text-foreground">{u.email}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`border px-2 py-0.5 text-[10px] uppercase tracking-wider ${roleColor(u.role)}`}
-                    >
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {u.role === "superAdmin" ? (
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                        Super Admin
-                      </span>
-                    ) : (
-                      <div className="flex gap-2">
-                        {u.role !== "admin" && (
-                          <button
-                            type="button"
-                            onClick={() => setRole(u.email, "admin")}
-                            disabled={updating === u.email}
-                            data-ocid={`admins.button.${i + 1}`}
-                            className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-2.5 py-1 text-[10px] uppercase tracking-wider transition-colors disabled:opacity-40 flex items-center gap-1"
-                          >
-                            {updating === u.email && (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            )}
-                            MAKE ADMIN
-                          </button>
-                        )}
-                        {u.role === "admin" && (
-                          <button
-                            type="button"
-                            onClick={() => setRole(u.email, "user")}
-                            disabled={updating === u.email}
-                            data-ocid={`admins.button.${i + 1}`}
-                            className="bg-secondary hover:bg-muted text-muted-foreground border border-border px-2.5 py-1 text-[10px] uppercase tracking-wider transition-colors disabled:opacity-40 flex items-center gap-1"
-                          >
-                            {updating === u.email && (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            )}
-                            DEMOTE
-                          </button>
-                        )}
-                      </div>
-                    )}
+              {users.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={3}
+                    data-ocid="admins.empty_state"
+                    className="px-4 py-8 text-center text-muted-foreground text-xs tracking-wider uppercase"
+                  >
+                    No users registered yet.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                users.map((u, i) => (
+                  <tr
+                    key={u.email}
+                    data-ocid={`admins.row.${i + 1}`}
+                    className="hover:bg-secondary/30 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-foreground">{u.email}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`border px-2 py-0.5 text-[10px] uppercase tracking-wider ${roleColor(u.role)}`}
+                      >
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {u.role === "superAdmin" ? (
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                          Super Admin
+                        </span>
+                      ) : (
+                        <div className="flex gap-2">
+                          {u.role !== "admin" && (
+                            <button
+                              type="button"
+                              onClick={() => setRole(u.email, "admin")}
+                              disabled={updating === u.email}
+                              data-ocid={`admins.button.${i + 1}`}
+                              className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-2.5 py-1 text-[10px] uppercase tracking-wider transition-colors disabled:opacity-40 flex items-center gap-1"
+                            >
+                              {updating === u.email && (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              )}
+                              MAKE ADMIN
+                            </button>
+                          )}
+                          {u.role === "admin" && (
+                            <button
+                              type="button"
+                              onClick={() => setRole(u.email, "user")}
+                              disabled={updating === u.email}
+                              data-ocid={`admins.button.${i + 1}`}
+                              className="bg-secondary hover:bg-muted text-muted-foreground border border-border px-2.5 py-1 text-[10px] uppercase tracking-wider transition-colors disabled:opacity-40 flex items-center gap-1"
+                            >
+                              {updating === u.email && (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              )}
+                              DEMOTE
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
