@@ -6,10 +6,9 @@ import {
   createRoute,
   createRouter,
   redirect,
-  useNavigate,
 } from "@tanstack/react-router";
 import Layout from "./components/Layout";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import AdminManager from "./pages/AdminManager";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -79,6 +78,10 @@ const ranksRoute = createRoute({
 const adminsRoute = createRoute({
   getParentRoute: () => protectedLayout,
   path: "/admins",
+  beforeLoad: () => {
+    const user = getStoredUser();
+    if (!user || user.role !== "superAdmin") throw redirect({ to: "/" });
+  },
   component: AdminManager,
 });
 

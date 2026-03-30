@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { UserPublic } from "../backend.d";
@@ -8,11 +8,12 @@ import { useBackend } from "../hooks/useBackend";
 
 export default function AdminManager() {
   const { actor } = useBackend();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     if (user?.role !== "superAdmin") {
@@ -52,6 +53,28 @@ export default function AdminManager() {
       toast.error("Update failed.");
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!actor) return;
+    const confirmed = window.confirm(
+      "This will permanently delete ALL users, members, and ranks. This cannot be undone. Are you sure?",
+    );
+    if (!confirmed) return;
+    setResetting(true);
+    try {
+      const res = await actor.resetAllData();
+      if (res.ok) {
+        toast.success("All data has been reset. You will be logged out.");
+        setTimeout(() => logout(), 1500);
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error("Reset failed.");
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -162,6 +185,38 @@ export default function AdminManager() {
           </table>
         </div>
       )}
+
+      {/* Danger Zone */}
+      <div className="mt-8 border border-red-800/60 bg-red-950/20 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <AlertTriangle className="w-4 h-4 text-red-500" />
+          <h2 className="text-xs font-bold uppercase tracking-widest text-red-500">
+            Danger Zone
+          </h2>
+        </div>
+        <p className="text-[11px] text-red-400/80 mb-4 leading-relaxed">
+          Resetting all data will permanently delete{" "}
+          <strong className="text-red-400">
+            all users, members, and ranks
+          </strong>
+          . The next person to register will become the new superAdmin. This
+          action <strong className="text-red-400">cannot be undone</strong>.
+        </p>
+        <button
+          type="button"
+          data-ocid="admins.delete_button"
+          onClick={handleReset}
+          disabled={resetting}
+          className="bg-red-900/40 hover:bg-red-800/60 text-red-400 border border-red-700/60 px-4 py-2 text-[11px] uppercase tracking-widest font-bold transition-colors disabled:opacity-40 flex items-center gap-2"
+        >
+          {resetting ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <AlertTriangle className="w-3.5 h-3.5" />
+          )}
+          RESET ALL DATA
+        </button>
+      </div>
     </div>
   );
 }

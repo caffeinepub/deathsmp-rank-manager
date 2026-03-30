@@ -71,6 +71,16 @@ actor {
     });
   };
 
+  public func resetAllData() : async { ok : Bool; message : Text } {
+    users := [];
+    ranks := [];
+    members := [];
+    nextRankId := 1;
+    nextMemberId := 1;
+    discordWebhookUrl := "";
+    { ok = true; message = "All data reset. First registration will become superAdmin." }
+  };
+
   public func registerUser(email : Text, password : Text) : async { ok : Bool; message : Text; role : Text } {
     switch (findUser(email)) {
       case (?_) { { ok = false; message = "Email already registered"; role = "" } };

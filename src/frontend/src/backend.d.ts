@@ -48,6 +48,7 @@ export interface backendInterface {
   getDiscordWebhookUrl(): Promise<string>;
   setDiscordWebhookUrl(callerEmail: string, callerPassword: string, url: string): Promise<{ ok: boolean; message: string }>;
   sendDiscordAlert(message: string): Promise<{ ok: boolean; message: string }>;
+  resetAllData(): Promise<{ ok: boolean; message: string }>;
   _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
 }
 
