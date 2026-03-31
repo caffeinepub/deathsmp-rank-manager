@@ -29,7 +29,6 @@ export function useActor() {
     enabled: true,
   });
 
-  // When the actor changes, invalidate dependent queries
   useEffect(() => {
     if (actorQuery.data) {
       queryClient.invalidateQueries({

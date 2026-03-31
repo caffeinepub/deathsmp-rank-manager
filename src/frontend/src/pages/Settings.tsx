@@ -46,13 +46,7 @@ export default function Settings() {
       </div>
 
       <footer className="mt-12 text-[10px] text-muted-foreground/50">
-        &copy; {new Date().getFullYear()}. Built with &#10084; using{" "}
-        <a
-          href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-          className="hover:text-primary transition-colors"
-        >
-          caffeine.ai
-        </a>
+        Built by @Itz_Vion
       </footer>
     </div>
   );
