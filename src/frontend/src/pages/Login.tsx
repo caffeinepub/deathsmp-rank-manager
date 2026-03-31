@@ -113,8 +113,16 @@ export default function Login() {
           </div>
         </div>
 
-        <footer className="text-center mt-8 text-[10px] text-muted-foreground/50">
-          Built by @Itz_Vion
+        <footer className="text-center mt-8 text-xs text-muted-foreground/50">
+          Built by{" "}
+          <a
+            href="https://discord.com/users/1450518023789088810"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:text-accent transition-colors cursor-pointer"
+          >
+            @Itz_Vion
+          </a>
         </footer>
       </div>
     </div>
