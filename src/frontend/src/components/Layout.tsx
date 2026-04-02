@@ -8,15 +8,19 @@ import {
   Crown,
   LayoutDashboard,
   LogOut,
+  Moon,
   Settings,
   ShieldCheck,
   Skull,
+  Sun,
   Users,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
@@ -76,6 +80,31 @@ export default function Layout() {
           </div>
           <div className="text-[10px] text-primary uppercase tracking-wider mb-3">
             {user?.role}
+          </div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-wider">
+              {theme === "dark" ? (
+                <Moon className="w-3 h-3" />
+              ) : (
+                <Sun className="w-3 h-3" />
+              )}
+              {theme === "dark" ? "DARK" : "LIGHT"}
+            </div>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              data-ocid="nav.toggle"
+              aria-label="Toggle theme"
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                theme === "light" ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  theme === "light" ? "translate-x-4" : "translate-x-1"
+                }`}
+              />
+            </button>
           </div>
           <button
             type="button"

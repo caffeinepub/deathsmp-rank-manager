@@ -10,6 +10,7 @@ import {
 import BlockedOverlay from "./components/BlockedOverlay";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import AdminManager from "./pages/AdminManager";
 import Blocked from "./pages/Blocked";
 import Dashboard from "./pages/Dashboard";
@@ -30,11 +31,13 @@ function getStoredUser() {
 
 const rootRoute = createRootRoute({
   component: () => (
-    <AuthProvider>
-      <Outlet />
-      <BlockedOverlay />
-      <Toaster theme="dark" />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Outlet />
+        <BlockedOverlay />
+        <Toaster theme="dark" />
+      </AuthProvider>
+    </ThemeProvider>
   ),
 });
 

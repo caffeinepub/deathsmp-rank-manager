@@ -1,38 +1,32 @@
 # DeathSMP Rank Manager
 
 ## Current State
-- Dashboard shows expiring members within 7 days
-- Dashboard auto-sends Discord alerts via webhook on page load (sessionStorage-gated)
-- Settings page has Discord webhook URL field and save button
-- Backend has `getDiscordWebhookUrl`, `setDiscordWebhookUrl`, `sendDiscordAlert` methods
-- Backend has `getExpiringMembers(withinDays)` which works correctly
+- Dark-only Minecraft-themed UI with red accents (OKLCH color tokens in index.css)
+- Layout.tsx has a sidebar nav with no theme toggle
+- AuthContext.tsx manages auth state
+- App.tsx wraps everything in AuthProvider
+- No theme context or light mode support exists
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Important Notifications** section on Dashboard showing members expiring within 2 days
-- Each notification card shows:
-  - Discord id: @<discordUsername>
-  - Minecraft Username: <playerName>
-  - Expiry Date: DD/MM/YYYY
-  - Time left: countdown to 12:00 AM IST of expiry date (e.g. "1d 4h 30m")
+- ThemeContext (React context) that manages `dark` | `light` state, persisted to localStorage under key `deathsmp_theme`, defaults to `dark`
+- Light mode CSS variables in index.css under `.light` class (lighter grays, same red primary accent)
+- Theme toggle switch in Layout.tsx nav bar (sun/moon icon + switch component)
+- Apply `dark` or `light` class to `<html>` element based on theme state
 
 ### Modify
-- Dashboard: replace existing 7-day expiry alert banner with new Important Notifications section using the new format above
-- Dashboard: remove Discord alert sending logic (sessionStorage + sendDiscordAlert calls)
-- Settings page: replace Discord webhook section with a simple "Account" or placeholder settings panel (no webhook UI)
+- App.tsx: wrap with ThemeProvider so theme is available app-wide
+- tailwind.config.js: change darkMode from `["class"]` to `["class"]` (already set, just ensure light class works)
+- index.css: add `.light` CSS variable overrides for a lighter theme variant
+- Layout.tsx: add the toggle switch in the sidebar near the bottom (above logout or inline)
 
 ### Remove
-- All Discord webhook UI from Settings page
-- Discord alert auto-sending logic from Dashboard
-- Backend methods for Discord are NOT removed (leave in Motoko to avoid breaking existing bindings), but they are simply no longer called from frontend
+- Nothing removed
 
 ## Implementation Plan
-1. Update `Dashboard.tsx`:
-   - Call `getExpiringMembers(2)` instead of `(7)`
-   - Remove sessionStorage Discord alert sending
-   - Replace alert banner with "Important Notifications" section showing new card format
-   - Compute time left to 12:00 AM IST of each member's renewal date
-2. Update `Settings.tsx`:
-   - Remove Discord webhook form entirely
-   - Show a simple settings page (just account info or empty state with footer)
+1. Create `src/frontend/src/context/ThemeContext.tsx` with `ThemeProvider` and `useTheme` hook
+2. Add `.light` CSS variable block in `index.css` with lighter backgrounds, same red primary
+3. Update `App.tsx` to wrap root with `ThemeProvider`
+4. Add theme toggle (Sun/Moon icons + Switch) in `Layout.tsx` sidebar
+5. Validate and build
