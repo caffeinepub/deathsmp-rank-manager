@@ -50,9 +50,12 @@ export class ExternalBlob {
 }
 
 export interface backendInterface {
+  _initializeAccessControlWithSecret(secret: string): Promise<void>;
   registerUser(email: string, password: string): Promise<{ ok: boolean; message: string; role: string }>;
   loginUser(email: string, password: string): Promise<{ ok: boolean; role: string; message: string }>;
   checkUserRole(email: string, password: string): Promise<{ ok: boolean; role: string }>;
+  updatePassword(email: string, currentPassword: string, newPassword: string): Promise<{ ok: boolean; message: string }>;
+  updateEmail(email: string, password: string, newEmail: string): Promise<{ ok: boolean; message: string }>;
   listUsers(): Promise<Array<{ email: string; role: string }>>;
   setUserRole(callerEmail: string, callerPassword: string, targetEmail: string, newRole: string): Promise<{ ok: boolean; message: string }>;
   getRanks(): Promise<Array<{ id: bigint; name: string; priceINR: bigint }>>;
@@ -82,6 +85,9 @@ export class Backend implements backendInterface {
     }
   }
 
+  _initializeAccessControlWithSecret(_secret: string): Promise<void> {
+    return Promise.resolve();
+  }
   registerUser(email: string, password: string) {
     return this._call(() => this.actor.registerUser(email, password));
   }
@@ -90,6 +96,12 @@ export class Backend implements backendInterface {
   }
   checkUserRole(email: string, password: string) {
     return this._call(() => this.actor.checkUserRole(email, password));
+  }
+  updatePassword(email: string, currentPassword: string, newPassword: string) {
+    return this._call(() => this.actor.updatePassword(email, currentPassword, newPassword));
+  }
+  updateEmail(email: string, password: string, newEmail: string) {
+    return this._call(() => this.actor.updateEmail(email, password, newEmail));
   }
   listUsers() {
     return this._call(() => this.actor.listUsers());

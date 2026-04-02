@@ -10,6 +10,7 @@ import {
 import BlockedOverlay from "./components/BlockedOverlay";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
+import { PreferencesProvider } from "./context/PreferencesContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import AdminManager from "./pages/AdminManager";
 import Blocked from "./pages/Blocked";
@@ -33,9 +34,11 @@ const rootRoute = createRootRoute({
   component: () => (
     <ThemeProvider>
       <AuthProvider>
-        <Outlet />
-        <BlockedOverlay />
-        <Toaster theme="dark" />
+        <PreferencesProvider>
+          <Outlet />
+          <BlockedOverlay />
+          <Toaster theme="dark" />
+        </PreferencesProvider>
       </AuthProvider>
     </ThemeProvider>
   ),

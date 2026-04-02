@@ -175,5 +175,5 @@ export async function createActorWithConfig(
     uploadFile,
     downloadFile,
     actorOptions,
-  );
+  ) as unknown as backendInterface;
 }

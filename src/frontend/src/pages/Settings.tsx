@@ -1,11 +1,27 @@
-import { KeyRound, Mail, Settings as SettingsIcon, User } from "lucide-react";
+import {
+  Calendar,
+  KeyRound,
+  Mail,
+  Palette,
+  Settings as SettingsIcon,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createActorWithConfig } from "../config";
 import { useAuth } from "../context/AuthContext";
+import {
+  ACCENT_COLORS,
+  type AccentColor,
+  type DateFormat,
+  SWATCH_HEX,
+  usePreferences,
+} from "../context/PreferencesContext";
 
 export default function Settings() {
   const { user, login } = useAuth();
+  const { dateFormat, setDateFormat, accentColor, setAccentColor } =
+    usePreferences();
 
   // Update password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -124,6 +140,86 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Date Format */}
+        <div
+          className="bg-card border border-border border-t-2 border-t-primary p-6"
+          data-ocid="settings.panel"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-foreground">
+              Date Format
+            </h2>
+          </div>
+          <div className="flex gap-3">
+            {(["DD/MM/YYYY", "MM/DD/YYYY"] as DateFormat[]).map((fmt) => (
+              <button
+                key={fmt}
+                type="button"
+                onClick={() => setDateFormat(fmt)}
+                data-ocid="settings.toggle"
+                className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors border ${
+                  dateFormat === fmt
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-secondary text-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {fmt}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-wider">
+            Currently: <span className="text-foreground">{dateFormat}</span>
+          </p>
+        </div>
+
+        {/* Accent Color (superAdmin only) */}
+        {user?.role === "superAdmin" && (
+          <div
+            className="bg-card border border-border border-t-2 border-t-primary p-6"
+            data-ocid="settings.panel"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Palette className="w-4 h-4 text-primary" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-foreground">
+                Accent Color
+              </h2>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
+              Changes the primary accent color across the entire app.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {ACCENT_COLORS.map((c) => {
+                const isActive = accentColor === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setAccentColor(c.value as AccentColor)}
+                    data-ocid="settings.toggle"
+                    title={c.label}
+                    className={`w-9 h-9 transition-all ${
+                      isActive
+                        ? "ring-2 ring-offset-2 ring-offset-card ring-white scale-110"
+                        : "hover:scale-105 opacity-80 hover:opacity-100"
+                    }`}
+                    style={{
+                      backgroundColor: SWATCH_HEX[c.value as AccentColor],
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-wider">
+              Current:{" "}
+              <span className="text-foreground">
+                {ACCENT_COLORS.find((c) => c.value === accentColor)?.label ??
+                  accentColor}
+              </span>
+            </p>
+          </div>
+        )}
+
         {/* Update Email */}
         <div className="bg-card border border-border border-t-2 border-t-primary p-6">
           <div className="flex items-center gap-2 mb-4">
@@ -146,6 +242,7 @@ export default function Settings() {
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 required
+                data-ocid="settings.input"
                 className="w-full bg-input text-foreground px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors placeholder:text-muted-foreground/50"
                 placeholder="new@email.com"
               />
@@ -163,12 +260,14 @@ export default function Settings() {
                 value={emailPassword}
                 onChange={(e) => setEmailPassword(e.target.value)}
                 required
+                data-ocid="settings.input"
                 className="w-full bg-input text-foreground px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors"
               />
             </div>
             <button
               type="submit"
               disabled={emailLoading}
+              data-ocid="settings.submit_button"
               className="w-full bg-primary hover:bg-accent text-primary-foreground py-2 text-xs font-bold tracking-widest uppercase transition-colors disabled:opacity-50"
             >
               {emailLoading ? "UPDATING..." : "UPDATE EMAIL"}
@@ -198,6 +297,7 @@ export default function Settings() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
+                data-ocid="settings.input"
                 className="w-full bg-input text-foreground px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors"
               />
             </div>
@@ -214,6 +314,7 @@ export default function Settings() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
+                data-ocid="settings.input"
                 className="w-full bg-input text-foreground px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors"
               />
             </div>
@@ -230,12 +331,14 @@ export default function Settings() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                data-ocid="settings.input"
                 className="w-full bg-input text-foreground px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors"
               />
             </div>
             <button
               type="submit"
               disabled={passwordLoading}
+              data-ocid="settings.submit_button"
               className="w-full bg-primary hover:bg-accent text-primary-foreground py-2 text-xs font-bold tracking-widest uppercase transition-colors disabled:opacity-50"
             >
               {passwordLoading ? "UPDATING..." : "UPDATE PASSWORD"}

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import NotificationBell from "./NotificationBell";
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -105,6 +106,9 @@ export default function Layout() {
                 }`}
               />
             </button>
+          </div>
+          <div className="mb-3">
+            <NotificationBell />
           </div>
           <button
             type="button"

@@ -32,6 +32,7 @@ export interface Member {
 }
 
 export interface backendInterface {
+  _initializeAccessControlWithSecret(secret: string): Promise<void>;
   registerUser(email: string, password: string): Promise<{ ok: boolean; message: string; role: string }>;
   loginUser(email: string, password: string): Promise<{ ok: boolean; role: string; message: string }>;
   checkUserRole(email: string, password: string): Promise<{ ok: boolean; role: string }>;
