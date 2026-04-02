@@ -34,6 +34,9 @@ export interface Member {
 export interface backendInterface {
   registerUser(email: string, password: string): Promise<{ ok: boolean; message: string; role: string }>;
   loginUser(email: string, password: string): Promise<{ ok: boolean; role: string; message: string }>;
+  checkUserRole(email: string, password: string): Promise<{ ok: boolean; role: string }>;
+  updatePassword(email: string, currentPassword: string, newPassword: string): Promise<{ ok: boolean; message: string }>;
+  updateEmail(email: string, password: string, newEmail: string): Promise<{ ok: boolean; message: string }>;
   listUsers(): Promise<Array<UserPublic>>;
   setUserRole(callerEmail: string, callerPassword: string, targetEmail: string, newRole: string): Promise<{ ok: boolean; message: string }>;
   getRanks(): Promise<Array<Rank>>;

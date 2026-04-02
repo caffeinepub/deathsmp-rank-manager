@@ -31,7 +31,6 @@ actor {
   stable var members : [Member] = [];
   stable var nextRankId : Nat = 1;
   stable var nextMemberId : Nat = 1;
-  // Kept for upgrade compatibility with previous version
   stable var discordWebhookUrl : Text = "";
 
   func hashPassword(password : Text) : Text { "h_" # password };
@@ -92,7 +91,6 @@ actor {
     }
   };
 
-  // Query call - fast and reliable for login
   public query func loginUser(email : Text, password : Text) : async { ok : Bool; role : Text; message : Text } {
     switch (findUser(email)) {
       case (null) { { ok = false; role = ""; message = "Invalid credentials" } };
@@ -106,7 +104,6 @@ actor {
     }
   };
 
-  // Update call - authoritative role check (use after admin grants access)
   public func checkUserRole(email : Text, password : Text) : async { ok : Bool; role : Text } {
     switch (findUser(email)) {
       case (null) { { ok = false; role = "" } };
@@ -116,6 +113,49 @@ actor {
         } else {
           { ok = false; role = "" }
         }
+      };
+    }
+  };
+
+  public func updatePassword(email : Text, currentPassword : Text, newPassword : Text) : async { ok : Bool; message : Text } {
+    switch (findUser(email)) {
+      case (null) { { ok = false; message = "User not found" } };
+      case (?u) {
+        if (u.passwordHash != hashPassword(currentPassword)) {
+          return { ok = false; message = "Current password is incorrect" };
+        };
+        if (newPassword.size() < 6) {
+          return { ok = false; message = "New password must be at least 6 characters" };
+        };
+        let updated : UserInfo = { u with passwordHash = hashPassword(newPassword) };
+        let n = users.size();
+        users := Array.tabulate<(Text, UserInfo)>(n, func(i : Nat) : (Text, UserInfo) {
+          let (e, ui) = users[i];
+          if (e == email) (e, updated) else (e, ui)
+        });
+        { ok = true; message = "Password updated" }
+      };
+    }
+  };
+
+  public func updateEmail(email : Text, password : Text, newEmail : Text) : async { ok : Bool; message : Text } {
+    switch (findUser(email)) {
+      case (null) { { ok = false; message = "User not found" } };
+      case (?u) {
+        if (u.passwordHash != hashPassword(password)) {
+          return { ok = false; message = "Password is incorrect" };
+        };
+        switch (findUser(newEmail)) {
+          case (?_) { return { ok = false; message = "Email already in use" }; };
+          case (null) {};
+        };
+        let updated : UserInfo = { u with email = newEmail };
+        let n = users.size();
+        users := Array.tabulate<(Text, UserInfo)>(n, func(i : Nat) : (Text, UserInfo) {
+          let (e, ui) = users[i];
+          if (e == email) (newEmail, updated) else (e, ui)
+        });
+        { ok = true; message = "Email updated" }
       };
     }
   };
