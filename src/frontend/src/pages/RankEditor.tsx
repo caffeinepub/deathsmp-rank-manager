@@ -55,7 +55,7 @@ function PriceWarning({ price }: { price: bigint }) {
 }
 
 export default function RankEditor() {
-  const { actor } = useBackend();
+  const { actor, isFetching: actorLoading } = useBackend();
   const { user } = useAuth();
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -105,7 +105,14 @@ export default function RankEditor() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor || !user) return;
+    if (!actor || !user) {
+      toast.error(
+        actorLoading
+          ? "Still connecting to backend, please wait..."
+          : "Not connected. Please refresh.",
+      );
+      return;
+    }
     setSaving(true);
     try {
       const priceINR = BigInt(Number(price));
