@@ -29,6 +29,8 @@ export interface _SERVICE {
   updateMember: ActorMethod<[string, string, bigint, string, string, bigint, bigint, bigint, string], { ok: boolean; message: string }>;
   deleteMember: ActorMethod<[string, string, bigint], { ok: boolean; message: string }>;
   getExpiringMembers: ActorMethod<[bigint], Array<Member>>;
+  updatePassword: ActorMethod<[string, string, string], { ok: boolean; message: string }>;
+  updateEmail: ActorMethod<[string, string, string], { ok: boolean; message: string }>;
   resetAllData: ActorMethod<[], { ok: boolean; message: string }>;
 }
 export declare const idlService: IDL.ServiceClass;

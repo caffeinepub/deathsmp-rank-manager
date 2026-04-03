@@ -1,5 +1,4 @@
 import {
-  Calendar,
   KeyRound,
   Mail,
   Palette,
@@ -13,15 +12,13 @@ import { useAuth } from "../context/AuthContext";
 import {
   ACCENT_COLORS,
   type AccentColor,
-  type DateFormat,
   SWATCH_HEX,
   usePreferences,
 } from "../context/PreferencesContext";
 
 export default function Settings() {
   const { user, login } = useAuth();
-  const { dateFormat, setDateFormat, accentColor, setAccentColor } =
-    usePreferences();
+  const { accentColor, setAccentColor } = usePreferences();
 
   // Update password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -138,39 +135,6 @@ export default function Settings() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Date Format */}
-        <div
-          className="bg-card border border-border border-t-2 border-t-primary p-6"
-          data-ocid="settings.panel"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-foreground">
-              Date Format
-            </h2>
-          </div>
-          <div className="flex gap-3">
-            {(["DD/MM/YYYY", "MM/DD/YYYY"] as DateFormat[]).map((fmt) => (
-              <button
-                key={fmt}
-                type="button"
-                onClick={() => setDateFormat(fmt)}
-                data-ocid="settings.toggle"
-                className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors border ${
-                  dateFormat === fmt
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-secondary text-foreground border-border hover:bg-muted"
-                }`}
-              >
-                {fmt}
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-wider">
-            Currently: <span className="text-foreground">{dateFormat}</span>
-          </p>
         </div>
 
         {/* Accent Color (superAdmin only) */}
