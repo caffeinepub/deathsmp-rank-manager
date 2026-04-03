@@ -229,22 +229,9 @@ export default function Layout() {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Page content — scrollable */}
         <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>
-        {/* Footer — always visible, never requires scrolling */}
-        <footer className="flex-shrink-0 px-6 py-2 text-xs text-muted-foreground/50 border-t border-border/30">
-          Built by{" "}
-          <a
-            href="https://discord.com/users/1450518023789088810"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:text-accent transition-colors cursor-pointer"
-          >
-            Itz_Vion
-          </a>
-        </footer>
       </main>
     </div>
   );

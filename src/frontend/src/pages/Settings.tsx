@@ -310,18 +310,6 @@ export default function Settings() {
           </form>
         </div>
       </div>
-
-      <footer className="mt-12 text-xs text-muted-foreground/50">
-        Built by{" "}
-        <a
-          href="https://discord.com/users/1450518023789088810"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:text-accent transition-colors cursor-pointer"
-        >
-          @Itz_Vion
-        </a>
-      </footer>
     </div>
   );
 }
