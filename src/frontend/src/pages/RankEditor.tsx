@@ -113,9 +113,14 @@ export default function RankEditor() {
       );
       return;
     }
+    const parsedPrice = Number(price);
+    if (price === "" || Number.isNaN(parsedPrice)) {
+      toast.error("Please enter a valid price.");
+      return;
+    }
     setSaving(true);
     try {
-      const priceINR = BigInt(Number(price));
+      const priceINR = BigInt(Math.round(parsedPrice));
       if (editRank) {
         const res = await actor.updateRank(
           user.email,
@@ -142,8 +147,8 @@ export default function RankEditor() {
           load();
         } else toast.error(res.message);
       }
-    } catch {
-      toast.error("Save failed.");
+    } catch (e) {
+      toast.error(`Save failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setSaving(false);
     }
