@@ -42,7 +42,9 @@ interface MemberForm {
   playerName: string;
   discordUsername: string;
   rankId: string;
-  purchaseDate: string;
+  purchaseDateDay: string;
+  purchaseDateMonth: string;
+  purchaseDateYear: string;
   monthsPaid: string;
   notes: string;
 }
@@ -51,7 +53,9 @@ const emptyForm: MemberForm = {
   playerName: "",
   discordUsername: "",
   rankId: "",
-  purchaseDate: "",
+  purchaseDateDay: "",
+  purchaseDateMonth: "",
+  purchaseDateYear: "",
   monthsPaid: "1",
   notes: "",
 };
@@ -355,7 +359,9 @@ export default function Members() {
       playerName: m.playerName,
       discordUsername: m.discordUsername,
       rankId: m.rankId.toString(),
-      purchaseDate: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+      purchaseDateDay: String(d.getDate()),
+      purchaseDateMonth: String(d.getMonth() + 1),
+      purchaseDateYear: String(d.getFullYear()),
       monthsPaid: m.monthsPaidInAdvance.toString(),
       notes: m.notes,
     });
@@ -383,6 +389,37 @@ export default function Members() {
     e.preventDefault();
     if (!actor || !user) return;
 
+    // Validate date fields
+    if (
+      !form.purchaseDateDay ||
+      !form.purchaseDateMonth ||
+      !form.purchaseDateYear
+    ) {
+      toast.error(
+        "Please fill in the complete purchase date (day, month, and year).",
+      );
+      return;
+    }
+    const day = Number.parseInt(form.purchaseDateDay);
+    const month = Number.parseInt(form.purchaseDateMonth);
+    const year = Number.parseInt(form.purchaseDateYear);
+    if (
+      Number.isNaN(day) ||
+      day < 1 ||
+      day > 31 ||
+      Number.isNaN(month) ||
+      month < 1 ||
+      month > 12 ||
+      Number.isNaN(year) ||
+      year < 2000 ||
+      year > 2100
+    ) {
+      toast.error(
+        "Invalid purchase date. Please check the day, month, and year.",
+      );
+      return;
+    }
+
     // Duplicate warning (non-blocking)
     const duplicate = checkDuplicates(
       form.playerName,
@@ -398,7 +435,7 @@ export default function Members() {
 
     setSaving(true);
     try {
-      const purchaseTs = BigInt(new Date(form.purchaseDate).getTime());
+      const purchaseTs = BigInt(new Date(year, month - 1, day).getTime());
       const months = BigInt(Number(form.monthsPaid) || 1);
       const rankId = BigInt(form.rankId);
       if (editId !== null) {
@@ -1113,24 +1150,82 @@ export default function Members() {
                   />
                 </div>
               </div>
+              {/* Purchase Date — 3-box DD/MM/YYYY picker */}
               <div>
                 <label
-                  htmlFor="m-date"
+                  htmlFor="m-date-day"
                   className="block text-[10px] uppercase tracking-widest text-muted-foreground mb-1"
                 >
                   Purchase Date
                 </label>
-                <input
-                  id="m-date"
-                  type="date"
-                  value={form.purchaseDate}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, purchaseDate: e.target.value }))
-                  }
-                  required
-                  data-ocid="members.input"
-                  className="w-full bg-input text-foreground px-3 py-2 text-xs border border-border focus:border-primary focus:outline-none"
-                />
+                <div className="flex gap-2">
+                  {/* Box 1: Day */}
+                  <input
+                    id="m-date-day"
+                    type="number"
+                    min="1"
+                    max="31"
+                    placeholder="DD"
+                    value={form.purchaseDateDay}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (
+                        val === "" ||
+                        (Number.parseInt(val) >= 1 &&
+                          Number.parseInt(val) <= 31)
+                      ) {
+                        setForm((f) => ({ ...f, purchaseDateDay: val }));
+                      }
+                    }}
+                    required
+                    data-ocid="members.input"
+                    className="w-16 bg-input text-foreground px-3 py-2 text-xs border border-border focus:border-primary focus:outline-none text-center"
+                  />
+                  {/* Box 2: Month dropdown */}
+                  <select
+                    value={form.purchaseDateMonth}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        purchaseDateMonth: e.target.value,
+                      }))
+                    }
+                    required
+                    data-ocid="members.select"
+                    className="flex-1 bg-input text-foreground px-3 py-2 text-xs border border-border focus:border-primary focus:outline-none"
+                  >
+                    <option value="">Month</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                  </select>
+                  {/* Box 3: Year */}
+                  <input
+                    type="number"
+                    min="2000"
+                    max="2100"
+                    placeholder="YYYY"
+                    value={form.purchaseDateYear}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        purchaseDateYear: e.target.value,
+                      }))
+                    }
+                    required
+                    data-ocid="members.input"
+                    className="w-20 bg-input text-foreground px-3 py-2 text-xs border border-border focus:border-primary focus:outline-none text-center"
+                  />
+                </div>
               </div>
               <div>
                 <label
