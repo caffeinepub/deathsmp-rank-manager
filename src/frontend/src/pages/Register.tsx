@@ -43,13 +43,13 @@ export default function Register() {
 
   return (
     <div
-      className="min-h-screen bg-background flex items-center justify-center p-4"
+      className="min-h-screen bg-background flex flex-col items-center justify-center p-4"
       style={{
         backgroundImage:
           "radial-gradient(ellipse at center, #1a0000 0%, #0d0d0d 70%)",
       }}
     >
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm flex-1 flex flex-col items-center justify-center">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-2">
             <Skull className="w-10 h-10 text-primary" />
@@ -62,7 +62,7 @@ export default function Register() {
           </p>
         </div>
 
-        <div className="bg-card border border-border border-t-2 border-t-primary p-6">
+        <div className="bg-card border border-border border-t-2 border-t-primary p-6 w-full">
           <h2 className="text-foreground text-sm font-bold tracking-widest uppercase mb-6">
             Create Account
           </h2>
@@ -140,6 +140,18 @@ export default function Register() {
           </div>
         </div>
       </div>
+
+      <footer className="mt-8 text-xs text-muted-foreground/50 text-center">
+        Built by{" "}
+        <a
+          href="https://discord.com/users/1450518023789088810"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-accent transition-colors cursor-pointer"
+        >
+          Itz_Vion
+        </a>
+      </footer>
     </div>
   );
 }
