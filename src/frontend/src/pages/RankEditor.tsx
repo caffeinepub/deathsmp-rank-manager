@@ -41,7 +41,7 @@ function PriceWarning({ price }: { price: bigint }) {
       </span>
     );
   }
-  if (n > 10000) {
+  if (n > 1000000) {
     return (
       <span
         title="Unusually high price"
@@ -99,7 +99,7 @@ export default function RankEditor() {
   const openEdit = (r: Rank) => {
     setEditRank(r);
     setName(r.name);
-    setPrice(Number(r.priceINR).toString());
+    setPrice((Number(r.priceINR) / 100).toString());
     setModalOpen(true);
   };
 
@@ -120,7 +120,7 @@ export default function RankEditor() {
     }
     setSaving(true);
     try {
-      const priceINR = BigInt(Math.round(parsedPrice));
+      const priceINR = BigInt(Math.round(parsedPrice * 100));
       if (editRank) {
         const res = await actor.updateRank(
           user.email,
@@ -222,6 +222,11 @@ export default function RankEditor() {
     archivedIds.includes(r.id.toString()),
   );
 
+  const formatPrice = (priceINR: bigint) => {
+    const val = Number(priceINR) / 100;
+    return val.toFixed(2).replace(/\.?0+$/, "");
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
@@ -308,7 +313,7 @@ export default function RankEditor() {
                     </div>
                     <div className="flex items-center">
                       <p className="text-xs text-muted-foreground">
-                        ₹{Number(r.priceINR)} / month
+                        ₹{formatPrice(r.priceINR)} / month
                       </p>
                       <PriceWarning price={r.priceINR} />
                     </div>
@@ -384,7 +389,7 @@ export default function RankEditor() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          ₹{Number(r.priceINR)} / month
+                          ₹{formatPrice(r.priceINR)} / month
                         </p>
                       </div>
                     </div>
@@ -511,13 +516,14 @@ export default function RankEditor() {
                 <input
                   id="rank-price"
                   type="number"
+                  step="0.01"
                   min="0"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   required
                   data-ocid="ranks.input"
                   className="w-full bg-input text-foreground px-3 py-2 text-xs border border-border focus:border-primary focus:outline-none"
-                  placeholder="e.g. 199"
+                  placeholder="e.g. 199.50"
                 />
               </div>
               <div className="flex gap-3 pt-2">

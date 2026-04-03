@@ -35,6 +35,11 @@ function getStatus(renewalMs: bigint): "active" | "expiring" | "expired" {
   return "active";
 }
 
+function formatPrice(priceINR: bigint): string {
+  const val = Number(priceINR) / 100;
+  return val.toFixed(2).replace(/\.?0+$/, "");
+}
+
 type SortKey = "playerName" | "rankName" | "renewalDate";
 type SortDir = "asc" | "desc";
 
@@ -838,7 +843,7 @@ export default function Members() {
                     <td
                       className={`px-4 ${rowPy} text-muted-foreground ${fontSize}`}
                     >
-                      ₹{Number(getRankPrice(m.rankId))}
+                      ₹{formatPrice(getRankPrice(m.rankId))}
                     </td>
                     <td
                       className={`px-4 ${rowPy} text-muted-foreground ${fontSize}`}
@@ -1124,7 +1129,7 @@ export default function Members() {
                     <option value="">Select rank...</option>
                     {ranks.map((r) => (
                       <option key={r.id.toString()} value={r.id.toString()}>
-                        {r.name} — ₹{Number(r.priceINR)}/mo
+                        {r.name} — ₹{formatPrice(r.priceINR)}/mo
                       </option>
                     ))}
                   </select>

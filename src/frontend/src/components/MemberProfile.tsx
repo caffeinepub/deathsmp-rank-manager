@@ -16,6 +16,11 @@ function getStatus(renewalMs: bigint): "active" | "expiring" | "expired" {
   return "active";
 }
 
+function formatPrice(priceINR: bigint): string {
+  const val = Number(priceINR) / 100;
+  return val.toFixed(2).replace(/\.?0+$/, "");
+}
+
 interface MemberProfileProps {
   member: Member | null;
   ranks: Rank[];
@@ -110,7 +115,7 @@ export default function MemberProfile({
                     {getRankName(member.rankId)}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    ₹{Number(getRankPrice(member.rankId))}/mo
+                    ₹{formatPrice(getRankPrice(member.rankId))}/mo
                   </span>
                 </div>
               </div>
