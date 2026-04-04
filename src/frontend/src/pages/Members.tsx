@@ -3,6 +3,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
+  DollarSign,
   Download,
   Loader2,
   Pencil,
@@ -18,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Member, Rank } from "../backend.d";
 import MemberProfile from "../components/MemberProfile";
+import PaidModal from "../components/PaidModal";
 import { useAuth } from "../context/AuthContext";
 import { usePreferences } from "../context/PreferencesContext";
 import { useBackend } from "../hooks/useBackend";
@@ -101,6 +103,10 @@ export default function Members() {
   const [bulkRenewOpen, setBulkRenewOpen] = useState(false);
   const [bulkMonths, setBulkMonths] = useState("1");
   const [bulkRenewing, setBulkRenewing] = useState(false);
+
+  // PAID modal
+  const [paidMember, setPaidMember] = useState<Member | null>(null);
+  const [paidLoading, setPaidLoading] = useState(false);
 
   const load = useCallback(async () => {
     if (!actor) return;
@@ -484,6 +490,45 @@ export default function Members() {
     }
   };
 
+  const handlePaid = async (months: number) => {
+    if (!actor || !user || !paidMember) return;
+    const m = paidMember;
+    setPaidLoading(true);
+    try {
+      const newMonthsPaid = m.monthsPaidInAdvance + BigInt(months);
+      const dateStr = new Date().toLocaleDateString("en-GB");
+      const paidNote = `[PAID: +${months}mo on ${dateStr}]`;
+      const newNotes = m.notes
+        ? `${m.notes}
+${paidNote}`
+        : paidNote;
+      const res = await actor.updateMember(
+        user.email,
+        user.password,
+        m.id,
+        m.playerName,
+        m.discordUsername,
+        m.rankId,
+        m.purchaseDate,
+        newMonthsPaid,
+        newNotes,
+      );
+      if (res.ok) {
+        toast.success(
+          `Payment recorded. Renewed ${months} month(s) for ${m.playerName}.`,
+        );
+        setPaidMember(null);
+        load();
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error("Payment update failed.");
+    } finally {
+      setPaidLoading(false);
+    }
+  };
+
   const confirmDelete = (id: bigint) => {
     setDeleteConfirmId(id);
   };
@@ -547,6 +592,14 @@ export default function Members() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
+      {/* Paid Modal */}
+      <PaidModal
+        member={paidMember}
+        onConfirm={handlePaid}
+        onClose={() => setPaidMember(null)}
+        isLoading={paidLoading}
+      />
+
       {/* Profile Drawer */}
       <MemberProfile
         member={profileMember}
@@ -923,6 +976,19 @@ export default function Members() {
                           ) : (
                             <Trash2 className="w-3.5 h-3.5" />
                           )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPaidMember(m);
+                          }}
+                          data-ocid={`members.secondary_button.${i + 1}`}
+                          title="Mark as paid"
+                          aria-label="Mark as paid"
+                          className="text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          <DollarSign className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>

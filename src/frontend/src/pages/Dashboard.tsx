@@ -3,13 +3,16 @@ import {
   AlertTriangle,
   Clock,
   Crown,
+  DollarSign,
   Plus,
   Skull,
   Users,
   Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { Member, Rank } from "../backend.d";
+import PaidModal from "../components/PaidModal";
 import { useAuth } from "../context/AuthContext";
 import { usePreferences } from "../context/PreferencesContext";
 import { useBackend } from "../hooks/useBackend";
@@ -79,26 +82,68 @@ export default function Dashboard() {
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paidMember, setPaidMember] = useState<Member | null>(null);
+  const [paidLoading, setPaidLoading] = useState(false);
+
+  const loadData = useCallback(async () => {
+    if (!actor || !user) return;
+    setLoading(true);
+    try {
+      const [exp, members, ranklist] = await Promise.all([
+        actor.getExpiringMembers(BigInt(2)),
+        actor.getMembers(),
+        actor.getRanks(),
+      ]);
+      setExpiring(exp);
+      setAllMembers(members);
+      setRanks(ranklist);
+    } finally {
+      setLoading(false);
+    }
+  }, [actor, user]);
 
   useEffect(() => {
-    if (!actor || !user) return;
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [exp, members, ranklist] = await Promise.all([
-          actor.getExpiringMembers(BigInt(2)),
-          actor.getMembers(),
-          actor.getRanks(),
-        ]);
-        setExpiring(exp);
-        setAllMembers(members);
-        setRanks(ranklist);
-      } finally {
-        setLoading(false);
+    loadData();
+  }, [loadData]);
+
+  const handlePaid = async (months: number) => {
+    if (!actor || !user || !paidMember) return;
+    const m = paidMember;
+    setPaidLoading(true);
+    try {
+      const newMonthsPaid = m.monthsPaidInAdvance + BigInt(months);
+      const dateStr = new Date().toLocaleDateString("en-GB");
+      const paidNote = `[PAID: +${months}mo on ${dateStr}]`;
+      const newNotes = m.notes
+        ? `${m.notes}
+${paidNote}`
+        : paidNote;
+      const res = await actor.updateMember(
+        user.email,
+        user.password,
+        m.id,
+        m.playerName,
+        m.discordUsername,
+        m.rankId,
+        m.purchaseDate,
+        newMonthsPaid,
+        newNotes,
+      );
+      if (res.ok) {
+        toast.success(
+          `Payment recorded. Renewed ${months} month(s) for ${m.playerName}.`,
+        );
+        setPaidMember(null);
+        loadData();
+      } else {
+        toast.error(res.message);
       }
-    };
-    load();
-  }, [actor, user]);
+    } catch {
+      toast.error("Payment update failed.");
+    } finally {
+      setPaidLoading(false);
+    }
+  };
 
   const getRankName = (id: bigint) =>
     ranks.find((r) => r.id === id)?.name ?? "—";
@@ -129,6 +174,14 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
+      {/* Paid Modal */}
+      <PaidModal
+        member={paidMember}
+        onConfirm={handlePaid}
+        onClose={() => setPaidMember(null)}
+        isLoading={paidLoading}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
         <div className="flex items-center gap-3">
@@ -271,14 +324,25 @@ export default function Dashboard() {
                   <div
                     key={m.id.toString()}
                     data-ocid={`dashboard.item.${i + 1}`}
-                    className="px-4 py-3"
+                    className="px-4 py-3 flex items-center justify-between"
                   >
-                    <p className="text-sm font-bold text-foreground">
-                      {m.playerName}
-                    </p>
-                    <p className="text-[10px] text-red-400 uppercase tracking-wider">
-                      @{m.discordUsername} · {getRankName(m.rankId)}
-                    </p>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">
+                        {m.playerName}
+                      </p>
+                      <p className="text-[10px] text-red-400 uppercase tracking-wider">
+                        @{m.discordUsername} · {getRankName(m.rankId)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPaidMember(m)}
+                      data-ocid={`dashboard.secondary_button.${i + 1}`}
+                      className="flex items-center gap-1 text-xs bg-green-700/20 hover:bg-green-700/40 text-green-400 border border-green-700/40 px-2 py-1 uppercase tracking-widest transition-colors"
+                    >
+                      <DollarSign className="w-3 h-3" />
+                      PAID
+                    </button>
                   </div>
                 ))}
               </div>
@@ -343,6 +407,15 @@ export default function Dashboard() {
                     <LiveCountdown renewalMs={m.renewalDate} />
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setPaidMember(m)}
+                  data-ocid={`dashboard.secondary_button.${i + 1}`}
+                  className="mt-3 flex items-center gap-1.5 text-xs bg-green-700/20 hover:bg-green-700/40 text-green-400 border border-green-700/40 px-3 py-1.5 uppercase tracking-widest transition-colors w-full justify-center"
+                >
+                  <DollarSign className="w-3.5 h-3.5" />
+                  PAID
+                </button>
               </div>
             ))}
           </div>
@@ -395,14 +468,25 @@ export default function Dashboard() {
                       {m.discordUsername} · {getRankName(m.rankId)}
                     </p>
                   </div>
-                  <div
-                    className={`text-xs font-bold px-2 py-1 border ${
-                      days <= 1
-                        ? "bg-primary/20 border-primary text-primary"
-                        : "bg-primary/10 border-primary/50 text-primary"
-                    }`}
-                  >
-                    {days <= 0 ? "EXPIRED" : `${days}D LEFT`}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`text-xs font-bold px-2 py-1 border ${
+                        days <= 1
+                          ? "bg-primary/20 border-primary text-primary"
+                          : "bg-primary/10 border-primary/50 text-primary"
+                      }`}
+                    >
+                      {days <= 0 ? "EXPIRED" : `${days}D LEFT`}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPaidMember(m)}
+                      data-ocid={`dashboard.secondary_button.${i + 1}`}
+                      className="flex items-center gap-1 text-xs bg-green-700/20 hover:bg-green-700/40 text-green-400 border border-green-700/40 px-2 py-1 uppercase tracking-widest transition-colors"
+                    >
+                      <DollarSign className="w-3 h-3" />
+                      PAID
+                    </button>
                   </div>
                 </div>
               );
